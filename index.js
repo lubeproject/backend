@@ -26,8 +26,8 @@ app.post('/forgot-password', async (req, res) => {
   try {
     // Try to trigger the password reset flow via Supabase Auth (if email exists in auth)
     const { data: users,error: authError } = await supabase.auth.resetPasswordForEmail(email, {
-      redirectTo: `${process.env.FRONTEND_URL}/admin-reset-password`,  // Redirect URL after reset
-    })
+      redirectTo: `https://sv-agency.vercel.app/admin-reset-password`,  // Redirect URL after reset
+    })                                         
     if (users) {
       var userId = users.id;
       res.status(200).json({ message: 'Password reset link has been sent to your email.' });
@@ -45,8 +45,7 @@ app.post('/forgot-password', async (req, res) => {
         return res.status(404).json({ error: 'No user found with this email in both the authentication system and the users table.' });
       }
 
-
-       // Generate a reset token and expiration time
+    // Generate a reset token and expiration time
     const resetToken = crypto.randomBytes(32).toString('hex');
     // Get the current time
 const currentTime = new Date(); // Get the current date and time
