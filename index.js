@@ -42,7 +42,7 @@ app.post('/forgot-password', async (req, res) => {
         .eq('email', email);
       var userId = users.id
       if (userError || users.length === 0) {
-        return res.status(404).json({ error: 'No user found with this email in both the authentication system and the users table.' });
+        return res.status(404).json({ error: 'No user found with this email.'});
       }
 
     // Generate a reset token and expiration time
