@@ -39,7 +39,8 @@ app.post('/forgot-password', async (req, res) => {
       const { data: users, error: userError } = await supabase
         .from('users')
         .select('*')
-        .eq('email', email);
+        .eq('email', email)
+        .eq('active','Y');
       var userId = users.id
       if (userError || users.length === 0) {
         return res.status(404).json({ error: 'No user found with this email.'});
