@@ -5,6 +5,7 @@ import crypto from 'crypto';
 import dotenv from 'dotenv';
 import cors from 'cors';
 import bcrypt from 'bcryptjs';
+import { CronJob } from 'cron';  // Import CronJob
 
 dotenv.config();
 
@@ -18,6 +19,67 @@ app.use(cors({
 const supabaseUrl = process.env.SUPABASE_URL;
 const supabaseKey = process.env.SUPABASE_KEY;
 const supabase = createClient(supabaseUrl, supabaseKey);
+
+
+
+const getCurrentTime = () => {
+  const now = new Date();
+  const hours = now.getHours().toString().padStart(2, '0');
+  const minutes = now.getMinutes().toString().padStart(2, '0');
+  const seconds = now.getSeconds().toString().padStart(2, '0');
+  return `${hours}:${minutes}:${seconds}`;  // Format: HH:MM:SS
+};
+
+
+const handleAutomaticCheckout = async () => {
+  console.log("Automatic checkout job started at:", new Date());
+
+  try {
+    const { data: visits, error } = await supabase
+      .from('represent_visiting1')
+      .select('*')
+      .is('checkouttime', null);
+
+    if (error) {
+      console.error('Error fetching visits:', error);
+      return;
+    }
+
+    for (const visit of visits) {
+      const { error: updateError } = await supabase
+        .from('represent_visiting1')
+        .update({
+          checkouttime: getCurrentTime(),
+          lastupdatetime: new Date(),
+          updatedby: 0, // Replace with an appropriate user ID
+        })
+        .eq('punchingid', visit.punchingid);
+
+      if (updateError) {
+        console.error(`Error checking out visit ${visit.punchingid}:`, updateError);
+      } else {
+        console.log(`Successfully checked out visit ${visit.punchingid}`);
+      }
+    }
+  } catch (error) {
+    console.error('Error in automatic checkout job:', error);
+  }
+
+  console.log("Automatic checkout job finished at:", new Date());
+};
+
+// const currentTime = new Date();
+// const nextMinute = currentTime.getMinutes() + 2;
+// const cronTime = `${nextMinute} ${currentTime.getHours()} * * *`; // Adjust the minutes only
+
+// const checkoutJob = new CronJob(cronTime, handleAutomaticCheckout, null, true, 'Asia/Kolkata');
+// checkoutJob.start();
+
+const checkoutJob = new CronJob('59 23 * * *', handleAutomaticCheckout, null, true, 'Asia/Kolkata');
+checkoutJob.start();
+
+
+
 
 // Route for sending reset password email
 app.post('/forgot-password', async (req, res) => {
